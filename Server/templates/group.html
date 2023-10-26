@@ -20,7 +20,7 @@
             Power/Threads: {{ group.threads }}<br>
             Target: {{ group.target }}<br>
         </code>
-        {% if group.members_count != 0 %}
+        {% if group.members != [] %}
             <h2>Attackers</h2>
             <table>
                 <tr>
@@ -29,6 +29,7 @@
                     <th>Threads</th>
                     {% if group.admin == g.user %}
                     <th>Ban User</th>
+                    <th>Kick User</th>
                     {% endif %}
                 </tr>
                 {% for member in group.members %}
@@ -38,8 +39,14 @@
                     <td>{{ member.threads }}</td>
                     {% if group.admin == g.user %}
                     <td>
-                        <form method="post" action="/group/{{group.name}}">
+                        <form method="post" action="/group/{{group.name}}/ban">
                             <button type="submit">Ban Attacker</button>
+                            <input name="user" value="{{ member.name }}" style="display: none;"></input>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="post" action="/group/{{group.name}}/kick">
+                            <button type="submit">Kick Attacker</button>
                             <input name="user" value="{{ member.name }}" style="display: none;"></input>
                         </form>
                     </td>
@@ -49,6 +56,27 @@
             </table>
         {% else %}
             <p style="color: red;">No one has joined this group yet D:</p>
+        {% endif %}
+
+        {% if group.admin == g.user and group.banned != [] %}
+            <h2 style="color: red;">Banned Attackers</h2>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Unban</th>
+                </tr>
+                {% for ban in group.banned %}
+                <tr>
+                    <td>{{ ban }}</td>
+                    <td>
+                        <form method="post" action="/group/{{group.name}}/unban">
+                            <button type="submit">Unban Attacker</button>
+                            <input name="user" value="{{ ban }}" style="display: none;"></input>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
         {% endif %}
     </body>
 </html>

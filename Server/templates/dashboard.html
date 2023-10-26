@@ -8,7 +8,7 @@
     </head>
     <body>
         <h1>Welcome Back, {{ g.user }}!</h1>
-        {% if groups_count != 0 %}
+        {% if groups != [] %}
         <p>Existing Groups:</p>
         <table>
             <tr >
@@ -18,12 +18,14 @@
                 <th>Power</th>
             </tr>
                 {% for group in groups %}
+                {% if not g.user in group.banned %}
                 <tr>
                     <td><a href="/group/{{group.name}}">{{ group.name }}</a></td>
                     <td>{{ group.target }}</td>
                     <td>{{ group.members_count }}</td>
                     <td>{{ group.threads }}</td>
                 </tr>
+                {% endif %}
                 {% endfor %}
         </table>
         <br/>
@@ -52,6 +54,11 @@
                     placeholder="http://target.com"
                     value="{{request.form['target']}}"
                     maxlength="200"></input>
+            <br/>
+            <br/>
+
+            <label for="date">(optional) Attack Date</label><br/>
+            <input name="date" type="date"></input>
             <br/>
             <br/>
 

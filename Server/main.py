@@ -20,7 +20,8 @@ noauth_endpoints = ['/group/json']
 
 @app.route('/')
 def dashboard():
-    return render_template('dashboard.html', groups=groups, groups_count=len(groups))
+    seen_groups = [group for group in groups if not session.user in group.banned]
+    return render_template('dashboard.html', groups=seen_groups)
 
 @app.route('/logout', methods=['POST'])
 def logout():

@@ -7,9 +7,7 @@ import string
 group = Blueprint('groups_blueprint', __name__, url_prefix='/group/')
 ok_chars = string.ascii_letters + string.digits + '_-'
 
-import random
-def random_members():
-    return [Member(str(int(random.random() * 10000)), random.randint(2, 8), random.randint(200, 500)) for i in range(random.randint(50, 200))]
+groups = [Group('Anonimous', 'https://google.com', 'admin', 10, [Member('test', 3, 5), Member('traba2', 3, 5)], [], 2)]
 
 def check_group_name(name):
     if len(name) > 22 or len(name) < 2:
@@ -17,16 +15,16 @@ def check_group_name(name):
 
     return all([char in ok_chars for char in name])
 
-groups = [
-    Group('TestGroup', 'https://test.com', 'admin'),
-    Group('Anonymous', 'https://google.com', 'admin'),
-    Group('Lulzsec', 'https://cia.gov', 'admin')
-]
-
 def find_group(name):
     for group in groups:
         if group.name == name:
             return group
+    return None
+
+def find_user(group, name):
+    for user in group.members:
+        if user.name == name:
+            return user
     return None
 
 @group.route('/json')
@@ -61,6 +59,9 @@ def group_info(name):
     if not group:
         return render_template('404.html', msg='Group not found'), 404
 
+    if session.user in group.banned:
+        return render_template('404.html', msg='Group not found'), 404
+
     return render_template('group.html', group=group)
 
 @group.route('/<name>/delete', methods=['POST'])
@@ -75,6 +76,60 @@ def delete_group(name):
     groups.remove(group)
 
     return redirect('/')
+
+@group.route('/<name>/ban', methods=['POST'])
+def ban_user(name):
+    username = request.form['user']
+    group = find_group(name)
+    if not group:
+        return render_template('404.html', msg='Group not found'), 404
+
+    user = find_user(group, username)
+    if not user:
+        return render_template('404.html', msg='User not found'), 404
+
+    if session.user != group.admin:
+        return render_template('401.html', msg='You\'re not the Group Admin'), 401
+
+    group.rem_member(user)
+    group.banned.append(user.name)
+
+    return redirect(f'/group/{name}')
+
+@group.route('/<name>/unban', methods=['POST'])
+def unban_user(name):
+    username = request.form['user']
+    group = find_group(name)
+    if not group:
+        return render_template('404.html', msg='Group not found'), 404
+
+    if not username in group.banned:
+        return render_template('404.html', msg='This user is not banned from this group ( not found in the ban list )'), 404
+
+    if session.user != group.admin:
+        return render_template('401.html', msg='You\'re not the Group Admin'), 401
+
+    group.banned.remove(username)
+
+    return redirect(f'/group/{name}')
+
+@group.route('/<name>/kick', methods=['POST'])
+def kick_user(name):
+    username = request.form['user']
+    group = find_group(name)
+    if not group:
+        return render_template('404.html', msg='Group not found'), 404
+
+    user = find_user(group, username)
+    if not user:
+        return render_template('404.html', msg='User not found'), 404
+
+    if session.user != group.admin:
+        return render_template('401.html', msg='You\'re not the Group Admin'), 401
+
+    group.rem_member(user)
+
+    return redirect(f'/group/{name}')
 
 @group.route('/create', methods=['POST'])
 def create_group():
