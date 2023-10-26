@@ -1,0 +1,33 @@
+@font-face {
+    font-family: "FiraCode";
+    src: url("/static/fonts/FiraCodeNerdFont-Regular.ttf")
+}
+
+@font-face {
+    font-family: "FiraCode";
+    src: url("/static/fonts/FiraCodeNerdFont-Bold.ttf");
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "FiraCode";
+    src: url("/static/fonts/FiraCodeNerdFont-Light.ttf");
+    font-weight: lighter;
+}
+
+body {
+    font-family: "FiraCode";
+}
+
+table, tr, th, td {
+    border: 1px solid black;
+    margin: 0px;
+}
+
+th, td, tr {
+    padding: 0.5rem;
+}
+
+code {
+    font-size: 1.1rem;
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <a href="/">&lt;- Go Home</a>
+        <h1>{{ group.name }}</h1>
+        {% if group.admin == g.user %}
+            <form action="/group/{{group.name}}/delete" method="post">
+                <button type="submit">Delete Group</button>
+            </form>
+            <br/>
+        {% endif %}
+        <code>
+            Members: {{ group.members_count }}<br>
+            Power/Threads: {{ group.threads }}<br>
+            Target: {{ group.target }}<br>
+        </code>
+        {% if group.members_count != 0 %}
+            <h2>Attackers</h2>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>CPU Cores</th>
+                    <th>Threads</th>
+                    {% if group.admin == g.user %}
+                    <th>Ban User</th>
+                    {% endif %}
+                </tr>
+                {% for member in group.members %}
+                <tr>
+                    <td>{{ member.name }}</td>
+                    <td>{{ member.cores }}</td>
+                    <td>{{ member.threads }}</td>
+                    {% if group.admin == g.user %}
+                    <td>
+                        <form method="post" action="/group/{{group.name}}">
+                            <button type="submit">Ban Attacker</button>
+                            <input name="user" value="{{ member.name }}" style="display: none;"></input>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p style="color: red;">No one has joined this group yet D:</p>
+        {% endif %}
+    </body>
+</html>

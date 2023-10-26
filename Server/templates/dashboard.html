@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Welcome Back, {{ g.user }}!</h1>
+        {% if groups_count != 0 %}
+        <p>Existing Groups:</p>
+        <table>
+            <tr >
+                <th>Name</th>
+                <th>Target</th>
+                <th>Members</th>
+                <th>Power</th>
+            </tr>
+                {% for group in groups %}
+                <tr>
+                    <td><a href="/group/{{group.name}}">{{ group.name }}</a></td>
+                    <td>{{ group.target }}</td>
+                    <td>{{ group.members_count }}</td>
+                    <td>{{ group.threads }}</td>
+                </tr>
+                {% endfor %}
+        </table>
+        <br/>
+        {% else %}
+        <p style="color: red;">There are no groups</p>
+        {% endif %}
+
+        <form method="post" action="/group/create" style="border: 1px solid black; padding: 1rem;">
+            <p style="color: red;">{{ group_err }}</p>
+            <h3 style="margin: 0px">Create a new Attackers' Group</h3>
+            <br/>
+
+            <label for="name">Group's Name</label><br/>
+            <input name="name"
+                    type="text"
+                    placeholder="MyGroup"
+                    value="{{request.form['name']}}"
+                    minlength="2"
+                    maxlength="22"></input>
+            <br/>
+            <br/>
+
+            <label for="target">Group's Target</label><br/>
+            <input name="target"
+                    type="url"
+                    placeholder="http://target.com"
+                    value="{{request.form['target']}}"
+                    maxlength="200"></input>
+            <br/>
+            <br/>
+
+            <button type="submit">Create Group</button>
+        </form>
+        <br>
+        <form method="post" action="/logout">
+            <button type="submit">logout</a>
+        </form>
+    </body>
+
+</html>
