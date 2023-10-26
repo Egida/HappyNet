@@ -1,3 +1,6 @@
+/* Please don't bully me I'm not a Front-End Dev */
+/* Lorix didn't want to help me :( */
+
 @font-face {
     font-family: "FiraCode";
     src: url("/static/fonts/FiraCodeNerdFont-Regular.ttf")
@@ -17,17 +20,86 @@
 
 body {
     font-family: "FiraCode";
+    font-size: 1.2rem;
+    background: #2c3439;
+    color: #ced9bf;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 }
 
 table, tr, th, td {
-    border: 1px solid black;
+    border: 1px solid #ced9bf;;
     margin: 0px;
+}
+
+a, .accent {
+    color: #A4B889;
 }
 
 th, td, tr {
     padding: 0.5rem;
 }
 
-code {
+h1 {
+    font-size: 1.75rem;
+}
+
+h2 {
+    font-size: 1.25rem;
+}
+
+button, input {
+    padding: 0.3rem;
+    background: #2c3439;
+    color: #ced9bf;
+    border: 1px solid #ced9bf;
+    margin: 1px;
     font-size: 1.1rem;
+}
+
+input:focus, button:focus {
+    outline: none;
+    border: 2px solid #A4B889;
+    margin: 0px;
+}
+
+td, tr {
+    font-size: 0.9rem;
+}
+
+input {
+    margin: 0px;
+}
+
+form.bordered {
+    border: 1px solid #ced9bf;
+    padding: 1rem;
+    padding-right: 2rem;
+}
+
+.menu {
+    font-size: 1.3rem;
+    text-decoration: none;
+    color: #A4B889;
+    font-style: italic;
+}
+
+.success {
+    color: #74c474
+}
+
+button.success {
+    border: 2px solid #74c474;
+}
+
+.error {
+    color: #c47474
+}
+
+button.error {
+    border: 2px solid #c47474;
+}
+
+.fullwidth, table, table button {
+    width: 100%
 }

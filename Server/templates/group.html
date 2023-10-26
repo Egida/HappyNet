@@ -7,29 +7,36 @@
         <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     </head>
     <body>
-        <a href="/">&lt;- Go Home</a>
-        <h1>{{ group.name }}</h1>
-        {% if group.admin == g.user %}
-            <form action="/group/{{group.name}}/delete" method="post">
-                <button type="submit">Delete Group</button>
+        <a href="/" class="menu">&lt;- Go Home</a>
+        <h1 style="margin-bottom: 0rem;">{{ group.name }}</h1>
+        <p style="margin-top: 0rem;">Attack Status: <span {% if group.status == "RUNNING" %} class="error" {% endif %}>{{ group.status }}</span></p>
+        {% if group.status == "RUNNING" and group.admin == g.user %}
+            <form action="/group/{{group.name}}/stop" method="post">
+                <button type="submit" class="error">STOP ATTACK</button>
             </form>
-            <br/>
+        <p class="error" style="margin-top: 0; margin-bottom: 0;"><b>Req/s: 1k</b></p>
+        <p class="error"style="margin-top: 0"><b>Total: 100k</b></p>
+        {% elif group.status == "idle" and group.admin == g.user %}
+            <form action="/group/{{group.name}}/start" method="post">
+                <button type="submit" class="success">START ATTACK</button>
+            </form>
         {% endif %}
-        <code>
+
+        <p>
             Members: {{ group.members_count }}<br>
             Power/Threads: {{ group.threads }}<br>
             Target: {{ group.target }}<br>
-        </code>
+        </p>
         {% if group.members != [] %}
             <h2>Attackers</h2>
             <table>
                 <tr>
                     <th>Name</th>
-                    <th>CPU Cores</th>
+                    <th>CPU</th>
                     <th>Threads</th>
                     {% if group.admin == g.user %}
-                    <th>Ban User</th>
-                    <th>Kick User</th>
+                    <th>Ban</th>
+                    <th>Kick</th>
                     {% endif %}
                 </tr>
                 {% for member in group.members %}
@@ -40,13 +47,13 @@
                     {% if group.admin == g.user %}
                     <td>
                         <form method="post" action="/group/{{group.name}}/ban">
-                            <button type="submit">Ban Attacker</button>
+                            <button type="submit">Ban</button>
                             <input name="user" value="{{ member.name }}" style="display: none;"></input>
                         </form>
                     </td>
                     <td>
                         <form method="post" action="/group/{{group.name}}/kick">
-                            <button type="submit">Kick Attacker</button>
+                            <button type="submit">Kick</button>
                             <input name="user" value="{{ member.name }}" style="display: none;"></input>
                         </form>
                     </td>
@@ -55,11 +62,11 @@
                 {% endfor %}
             </table>
         {% else %}
-            <p style="color: red;">No one has joined this group yet D:</p>
+            <p class="error">Uhm, nobody is here.. :'(</p>
         {% endif %}
 
         {% if group.admin == g.user and group.banned != [] %}
-            <h2 style="color: red;">Banned Attackers</h2>
+            <h2 class="error">Banned Attackers</h2>
             <table>
                 <tr>
                     <th>Name</th>
@@ -78,5 +85,14 @@
                 {% endfor %}
             </table>
         {% endif %}
+
+        {% if group.admin == g.user %}
+            <br>
+            <form action="/group/{{group.name}}/delete" method="post">
+                <button type="submit" class="error">Delete Group</button>
+            </form>
+            <br/>
+        {% endif %}
+
     </body>
 </html>

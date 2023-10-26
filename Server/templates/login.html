@@ -7,14 +7,15 @@
         <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     </head>
     <body>
-        <h3 style="background: rgb(100, 0, 0);">{{ err }}</h3>
+        <h1>FriendlyNet</h1>
+        <p class="error">{{ err }}</p>
         <form method="post">
             <label for="username">Username</label>
             <br>
             <input  type="text" name="username"
                     placeholder="admin"
                     value="{{ request.form['username'] }}"</input>
-            <br>
+            <br/><br/>
     
             <label for="password">Password</label>
             <br>
@@ -22,7 +23,7 @@
                     type="password"
                     placeholder="admin123"
                       ></input>
-            <br>
+            <br/><br/>
             <button type="submit">Submit</button>
         </form>
     </body>

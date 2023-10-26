@@ -1,2 +1,14 @@
-<h1 style="color: rgb(150, 0, 0)">401: Unauthorized</h1>
-<p>{{msg}}</p>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <a href="/" class="menu">&lt;- Go Home</a>
+        <h1 class="error">401: Unauthorized</h1>
+        <p>{{msg}}</p>
+    </body>
+</html>

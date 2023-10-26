@@ -18,6 +18,8 @@ class Group:
     banned: list = field(default_factory=lambda: [])
     members_count: int = 0
 
+    status: str = 'idle'
+
     def add_member(self, member: Member):
         self.members.append(member)
         self.threads += member.threads

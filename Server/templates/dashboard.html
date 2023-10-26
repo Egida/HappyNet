@@ -10,31 +10,27 @@
         <h1>Welcome Back, {{ g.user }}!</h1>
         {% if groups != [] %}
         <p>Existing Groups:</p>
-        <table>
+        <table class="fullwidth">
             <tr >
                 <th>Name</th>
                 <th>Target</th>
-                <th>Members</th>
-                <th>Power</th>
+                <th>U/P</th>
             </tr>
                 {% for group in groups %}
-                {% if not g.user in group.banned %}
                 <tr>
                     <td><a href="/group/{{group.name}}">{{ group.name }}</a></td>
                     <td>{{ group.target }}</td>
-                    <td>{{ group.members_count }}</td>
-                    <td>{{ group.threads }}</td>
+                    <td>{{ group.members_count }}/{{ group.threads }}</td>
                 </tr>
-                {% endif %}
                 {% endfor %}
         </table>
         <br/>
         {% else %}
-        <p style="color: red;">There are no groups</p>
+        <p class="error">There are no groups</p>
         {% endif %}
 
-        <form method="post" action="/group/create" style="border: 1px solid black; padding: 1rem;">
-            <p style="color: red;">{{ group_err }}</p>
+        <form method="post" action="/group/create" class='bordered'>
+            <p class="error">{{ group_err }}</p>
             <h3 style="margin: 0px">Create a new Attackers' Group</h3>
             <br/>
 
@@ -44,7 +40,8 @@
                     placeholder="MyGroup"
                     value="{{request.form['name']}}"
                     minlength="2"
-                    maxlength="22"></input>
+                    maxlength="22"
+                    class="fullwidth"></input>
             <br/>
             <br/>
 
@@ -53,7 +50,8 @@
                     type="url"
                     placeholder="http://target.com"
                     value="{{request.form['target']}}"
-                    maxlength="200"></input>
+                    maxlength="200"
+                    class="fullwidth"></input>
             <br/>
             <br/>
 
@@ -66,7 +64,7 @@
         </form>
         <br>
         <form method="post" action="/logout">
-            <button type="submit">logout</a>
+            <button type="submit" class="error">logout</a>
         </form>
     </body>
 

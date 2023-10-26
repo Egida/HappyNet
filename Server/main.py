@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.register_blueprint(group)
 app.register_blueprint(login)
 
-noauth_endpoints = ['/group/json']
+noauth_endpoints = ['/group/json', '/static/']
 
 @app.route('/')
 def dashboard():
@@ -33,7 +33,8 @@ def logout():
 def jwt_check():
     session.user = None
 
-    if request.path in noauth_endpoints: return
+    for endpoint in noauth_endpoints:
+        if request.path.startswith(endpoint): return
 
     if 'login' in request.cookies:
         try:

@@ -31,6 +31,17 @@ def find_user(group, name):
 def groups_list_json():
     return {g.name: {'target': g.target, 'members_count': g.members_count, 'threads': g.threads} for g in groups}
 
+@group.route('/<name>')
+def group_info(name):
+    group = find_group(name)
+    if not group:
+        return render_template('404.html', msg='Group not found'), 404
+
+    if session.user in group.banned:
+        return render_template('404.html', msg='Group not found'), 404
+
+    return render_template('group.html', group=group)
+
 @group.route('/<name>', methods=['POST'])
 def remove_member(name):
     member_name = request.form['user']
@@ -53,16 +64,32 @@ def remove_member(name):
 
     return redirect(f'/group/{name}')
 
-@group.route('/<name>')
-def group_info(name):
+@group.route('/<name>/start', methods=['POST'])
+def start_attack(name):
     group = find_group(name)
     if not group:
         return render_template('404.html', msg='Group not found'), 404
 
-    if session.user in group.banned:
+    if session.user != group.admin:
+        return render_template('401.html', msg='You\'re not the Group Admin'), 401
+
+    group.status = 'RUNNING'
+
+    return redirect(f'/group/{name}')
+
+@group.route('/<name>/stop', methods=['POST'])
+def stop_attack(name):
+    group = find_group(name)
+    if not group:
         return render_template('404.html', msg='Group not found'), 404
 
-    return render_template('group.html', group=group)
+    if session.user != group.admin:
+        return render_template('401.html', msg='You\'re not the Group Admin'), 401
+
+    group.status = 'idle'
+
+    return redirect(f'/group/{name}')
+
 
 @group.route('/<name>/delete', methods=['POST'])
 def delete_group(name):
