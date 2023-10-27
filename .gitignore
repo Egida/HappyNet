@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 
 Server/db
+Client/configs
 
 __pycache__/
 *.py[cod]
