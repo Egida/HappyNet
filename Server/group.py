@@ -39,15 +39,19 @@ class Group:
     requests_per_second: int = 0
     requests_total: int = 0
 
+    live_updates = []
+
     def add_member(self, member: Member):
         self.members.append(member)
         self.threads += member.threads
         self.members_count += 1
+        self.calc_reqs()
 
     def rem_member(self, member: Member):
         self.members.remove(member)
         self.threads -= member.threads
         self.members_count -= 1
+        self.calc_reqs()
 
     def calc_reqs(self):
         reqs = 0

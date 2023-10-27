@@ -1,8 +1,9 @@
 import json
 import secrets
 from simple_websocket.ws import Server
-from group import Group, Member, find_group, find_user
+from group import Group, Member, find_group
 
+from flask import request
 
 class WebSocketClient:
     connections = {}

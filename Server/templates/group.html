@@ -50,15 +50,13 @@
                     <td>{{ member.threads }}</td>
                     {% if group.admin == g.user %}
                     <td>
-                        <form method="post" action="/group/{{group.name}}/ban">
+                        <form method="post" action="/group/{{group.name}}/{{member.name}}/ban">
                             <button type="submit">Ban</button>
-                            <input name="user" value="{{ member.name }}" style="display: none;"></input>
                         </form>
                     </td>
                     <td>
-                        <form method="post" action="/group/{{group.name}}/kick">
+                        <form method="post" action="/group/{{group.name}}/{{member.name}}/kick">
                             <button type="submit">Kick</button>
-                            <input name="user" value="{{ member.name }}" style="display: none;"></input>
                         </form>
                     </td>
                     {% endif %}
@@ -80,9 +78,8 @@
                 <tr>
                     <td>{{ ban }}</td>
                     <td>
-                        <form method="post" action="/group/{{group.name}}/unban">
+                        <form method="post" action="/group/{{group.name}}/{{ban}}/unban">
                             <button type="submit">Unban Attacker</button>
-                            <input name="user" value="{{ ban }}" style="display: none;"></input>
                         </form>
                     </td>
                 </tr>
@@ -123,12 +120,15 @@
             return true;
         }
 
-        async function diocane() {
-            const response = await fetch("/group/{{group.name}}/json");
-            const info = await response.json();
-            
+        const socket = new WebSocket(`ws${location.protocol.substring(4)}//${location.host}/stalk?name={{group.name}}`);
+
+        socket.addEventListener("message", (message) => {
+            update_page_content(JSON.parse(event.data))
+        })
+
+        function update_page_content(info) {
             if (per_second_label && total_requests) {
-                per_second_label.innerText = `Req/S: ${info.per_second}`;
+                per_second_label.innerText = `Req/s: ${info.per_second}`;
                 total_requests.innerText = `Total: ${info.total}`
             }
 
@@ -146,6 +146,5 @@
             }
         }
 
-        setInterval(diocane, 2000)
     </script>
 </html>

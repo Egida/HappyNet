@@ -18,7 +18,14 @@ def check_group_name(name):
 
 @group.route('/json')
 def groups_list_json():
-    return {g.name: {'target': g.target, 'members_count': g.members_count, 'threads': g.threads} for g in groups}
+    return {
+        g.name: {
+            'target': g.target,
+            'members_count': g.members_count,
+            'threads': g.threads,
+            'status': g.status,
+        } for g in groups
+    }
 
 @group.route('/<name>/json')
 def group_json(name):
@@ -33,7 +40,11 @@ def group_json(name):
     for member in group.members:
         members[member.name] = member.requests_total
 
-    return {'per_second': group.requests_per_second, 'total': group.requests_total, 'members': members}
+    return {
+        'per_second': group.requests_per_second,
+        'total': group.requests_total,
+        'members': members
+    }
 
 @group.route('/<name>')
 def group_info(name):
@@ -119,11 +130,14 @@ def delete_group(name):
 
     groups.remove(group)
 
+    for member in group.members:
+        client = WebSocketClient.connections[member.name]
+        client.ws.send(json.dumps({'p': 'kick'}))
+
     return redirect('/')
 
-@group.route('/<name>/ban', methods=['POST'])
-def ban_user(name):
-    username = request.form['user']
+@group.route('/<name>/<username>/ban', methods=['POST'])
+def ban_user(name, username):
     group = find_group(name)
     if not group:
         return render_template('404.html', msg='Group not found'), 404
@@ -138,11 +152,13 @@ def ban_user(name):
     group.rem_member(user)
     group.banned.append(user.name)
 
+    client = WebSocketClient.connections[username]
+    client.ws.send(json.dumps({'p': 'kick'}))
+
     return redirect(f'/group/{name}')
 
-@group.route('/<name>/unban', methods=['POST'])
-def unban_user(name):
-    username = request.form['user']
+@group.route('/<name>/<username>/unban', methods=['POST'])
+def unban_user(name, username):
     group = find_group(name)
     if not group:
         return render_template('404.html', msg='Group not found'), 404
@@ -157,9 +173,8 @@ def unban_user(name):
 
     return redirect(f'/group/{name}')
 
-@group.route('/<name>/kick', methods=['POST'])
-def kick_user(name):
-    username = request.form['user']
+@group.route('/<name>/<username>/kick', methods=['POST'])
+def kick_user(name, username):
     group = find_group(name)
     if not group:
         return render_template('404.html', msg='Group not found'), 404
@@ -172,6 +187,8 @@ def kick_user(name):
         return render_template('401.html', msg='You\'re not the Group Admin'), 401
 
     group.rem_member(user)
+    client = WebSocketClient.connections[username]
+    client.ws.send(json.dumps({'p': 'kick'}))
 
     return redirect(f'/group/{name}')
 
