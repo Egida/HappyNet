@@ -12,6 +12,8 @@ from endpoints.group import group, groups
 from endpoints.login import login, accounts
 from endpoints.admin import admin
 
+import argparse
+
 app = Flask(__name__)
 app.register_blueprint(group)
 app.register_blueprint(login)
@@ -79,7 +81,12 @@ def favicon():
     return send_file('./static/img/pepe.ico')
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--port', type=int, default=6969)
+    parser.add_argument('-b', '--bind', type=str, default='0.0.0.0')
+    args = parser.parse_args()
+
     sock.route('/websocket')(WebSocketClient)
     sock.route('/stalk')(WebSocketAnalytics)
-    app.run('0.0.0.0', 6969, debug=False)
+    app.run(args.bind, args.port, debug=False)
 
