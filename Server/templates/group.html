@@ -14,8 +14,8 @@
             <form action="/group/{{group.name}}/stop" method="post">
                 <button type="submit" class="error">STOP ATTACK</button>
             </form>
-        <p class="error" style="margin-top: 0; margin-bottom: 0;"><b>Req/s: 1k</b></p>
-        <p class="error"style="margin-top: 0"><b>Total: 100k</b></p>
+            <p class="error" style="margin-top: 0; margin-bottom: 0;"><b id="req_per_s">Req/s: {{ group.requests_per_second }}</b></p>
+            <p class="error"style="margin-top: 0"><b id="tot_reqs">Total: {{ group.requests_total }}</b></p>
         {% elif group.status == "idle" and group.admin == g.user %}
             <form action="/group/{{group.name}}/start" method="post">
                 <button type="submit" class="success">START ATTACK</button>
@@ -32,7 +32,9 @@
             <table>
                 <tr>
                     <th>Name</th>
-                    <th>CPU</th>
+                    {% if group.status == "RUNNING" %}
+                    <th>Requests</th>
+                    {% endif %}
                     <th>Threads</th>
                     {% if group.admin == g.user %}
                     <th>Ban</th>
@@ -42,7 +44,9 @@
                 {% for member in group.members %}
                 <tr>
                     <td>{{ member.name }}</td>
-                    <td>{{ member.cores }}</td>
+                    {% if group.status == "RUNNING" %}
+                    <td id="reqs-{{member.name}}">{{member.requests_total}}</td>
+                    {% endif %}
                     <td>{{ member.threads }}</td>
                     {% if group.admin == g.user %}
                     <td>
@@ -95,4 +99,53 @@
         {% endif %}
 
     </body>
+
+    <script>
+        per_second_label = document.getElementById('req_per_s');
+        total_requests = document.getElementById('tot_reqs');
+        page_members = [
+            {% for member in group.members %}
+            "{{member.name}}",
+            {% endfor %}
+        ]
+
+        function arraysEqual(a, b) {
+            if (a === b) return true;
+            if (a == null || b == null) return false;
+            if (a.length !== b.length) return false;
+        
+            a.sort()
+            b.sort()
+        
+            for (var i = 0; i < a.length; ++i) {
+              if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
+
+        async function diocane() {
+            const response = await fetch("/group/{{group.name}}/json");
+            const info = await response.json();
+            
+            if (per_second_label && total_requests) {
+                per_second_label.innerText = `Req/S: ${info.per_second}`;
+                total_requests.innerText = `Total: ${info.total}`
+            }
+
+            res_members = []
+
+            for (const [key, value] of Object.entries(info.members)) {
+                label = document.getElementById(`reqs-${key}`)
+                res_members.push(key)
+                {% if group.status == "RUNNING" %}
+                if (label) label.innerText = value
+                {% endif %}
+            }
+            if (!arraysEqual(res_members, page_members)) {
+                location.reload()
+            }
+        }
+
+        setInterval(diocane, 2000)
+    </script>
 </html>

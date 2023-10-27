@@ -1,8 +1,11 @@
+from flask_sock import Sock
+from turbo_flask import Turbo
+from group import find_group
+from ws.client import WebSocketClient
+
 from flask import Flask, render_template, request, redirect
 from flask import g as session
 from base64 import b64decode
-import hmac
-import time
 
 from werkzeug.routing.rules import Rule
 from auth.token import JWTBadChecksum, JWTExpired, load_JWT
@@ -16,7 +19,10 @@ app = Flask(__name__)
 app.register_blueprint(group)
 app.register_blueprint(login)
 
-noauth_endpoints = ['/group/json', '/static/']
+sock = Sock(app)
+turbo = Turbo(app)
+
+noauth_endpoints = ['/group/json', '/static/', '/websocket']
 
 @app.route('/')
 def dashboard():
@@ -48,6 +54,6 @@ def jwt_check():
     elif request.path != '/login':
         return redirect('/login')
 
-
 if __name__ == '__main__':
+    sock.route('/websocket')(WebSocketClient)
     app.run('0.0.0.0', 6969, debug=True)

