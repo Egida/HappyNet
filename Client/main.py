@@ -10,7 +10,7 @@ from psutil import Process
 from rich.console import Console
 from rich.table import Table
 
-IP = '127.0.0.1:6969'
+from config import IP
 
 console = Console()
 group_name = ['']
