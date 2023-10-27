@@ -28,6 +28,7 @@ class Group:
     name: str
     target: str
     admin: str
+    min_power: int = 0
 
     threads: int = 0
     members: list = field(default_factory=lambda: [])

@@ -15,7 +15,15 @@ from configs.ip import IP
 console = Console()
 group_name = ['']
 groups = {}
+
 cores = os.cpu_count()
+if not cores:
+    print('Failed to retrive CPU count, default: 2')
+    cores = 2
+
+suggested_threads = cores * 10
+suggested_processes = cores // 4 + 1
+suggested_power = suggested_processes * suggested_threads
 
 def print_group(group_name):
     global groups
@@ -36,11 +44,12 @@ def print_group(group_name):
         table.add_column('Members')
         table.add_column('Power/Threads')
         table.add_column('Status')
+        table.add_column('Minimum Power')
 
         for group in groups:
             info = groups[group]
-            name, target, members, power, status = group, info['target'], str(info['members_count']), str(info['threads']), info['status']
-            table.add_row(name, target, members, power, status)
+            name, target, members, power, status, min_power = group, info['target'], str(info['members_count']), str(info['threads']), info['status'], str(info['min_power'])
+            table.add_row(name, target, members, power, status, min_power)
         console.print(table)
         console.print("Join Group - Name >", end='')
 
@@ -53,16 +62,22 @@ while True:
         break
     print('Join Group - Name >', end='')
 
+min_power = groups[group_name[0]]['min_power']
 while True:
     try:
-        threads = int(input(f'How many threads? (suggested: {cores * 10})'))
-        processes = int(input(f'How many processes? (suggested: {cores // 4 + 1})'))
-    except: continue
+        threads = int(input(f'How many threads? (suggested: {suggested_threads})'))
+        processes = int(input(f'How many processes? (suggested: {suggested_processes})'))
+    except ValueError: continue
+
+    if threads * processes < min_power:
+        print(f'Your PC doesn\'t reach the minimum power required: {threads * processes}/{min_power}')
+        continue
 
     if threads > 0 and processes > 0:
         break
 
 target = groups[group_name[0]]['target']
+
 
 class Attack:
     def __init__(self):
@@ -128,14 +143,23 @@ attack = Attack()
 
 def on_message(ws, message):
     data = json.loads(message)
-    if data['p'] == 'start-attack':
+
+    if data['p'] == 'joined':
+        print('Succesfully joined')
+        if groups[group_name[0]]['status'] != 'RUNNING':
+            print('waiting for the attack to start...')
+
+    elif data['p'] == 'start-attack':
         attack.start_attack()
     elif data['p'] == 'stop-attack':
         attack.stop_attack()
     elif data['p'] == 'kick':
         ws.close()
+    elif data['p'] == 'err':
+        print('ERROR: ', data['msg'])
 
 def on_error(ws, error):
+    print(error)
     attack.stop_attack()
 
 def on_close(ws, close_status_code, close_msg):
@@ -149,7 +173,7 @@ def on_open(ws):
         attack.start_attack()
 
 if __name__ == "__main__":
-    websocket.enableTrace(True)
+    websocket.enableTrace(False)
     ws = websocket.WebSocketApp(f"ws://{IP}/websocket",
                               on_open=on_open,
                               on_message=on_message,

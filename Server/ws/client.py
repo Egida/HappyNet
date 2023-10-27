@@ -35,14 +35,18 @@ class WebSocketClient:
 
             elif data['p'] == 'join-group':
                 if not username:
-                    self.ws.send(json.dumps({'err': 'pls-identify'}))
-                    continue
+                    self.ws.send(json.dumps({'p': 'err', 'msg': 'pls-identify'}))
+                    return self.ws.close()
 
                 name, cores, threads = data['name'], data['cores'], data['threads']
                 group = find_group(name)
                 if not group:
-                    self.ws.send(json.dumps({'err': 'group-not-found'}))
-                    continue
+                    self.ws.send(json.dumps({'p': 'err', 'msg': 'group-not-found'}))
+                    return self.ws.close()
+
+                if threads < group.min_power:
+                    self.ws.send(json.dumps({'p': 'err', 'msg': 'not-enough-power'}))
+                    return self.ws.close()
 
                 current_group = group
                 current_group_usr = Member(username, cores, threads)
@@ -51,7 +55,7 @@ class WebSocketClient:
 
             elif data['p'] == 'analytics':
                 if not current_group or not current_group_usr:
-                    self.ws.send(json.dumps({'err': 'not-in-group'}))
+                    self.ws.send(json.dumps({'p': 'err', 'msg': 'not-in-group'}))
                     continue
 
                 current_group_usr.requests_total = data['total']

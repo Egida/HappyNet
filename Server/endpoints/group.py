@@ -25,6 +25,7 @@ def groups_list_json():
             'members_count': g.members_count,
             'threads': g.threads,
             'status': g.status,
+            'min_power': g.min_power
         } for g in groups
     }
 
@@ -61,28 +62,6 @@ def group_info(name):
         is_admin = True
 
     return render_template('group.html', group=group, is_admin=is_admin)
-
-@group.route('/<name>', methods=['POST'])
-def remove_member(name):
-    member_name = request.form['user']
-
-    for group in groups:
-        if group.name == name:
-            break
-    else:
-        return render_template('404.html', msg='Group not found'), 404
-
-    if session.user != group.admin:
-        return render_template('401.html', msg='You\'re not the Group Admin'), 401
-
-    for member in group.members.copy():
-        if member.name == member_name:
-            group.members.remove(member)
-            group.members_count -= 1
-            group.threads -= member.threads
-            print(member, 'has been removed')
-
-    return redirect(f'/group/{name}')
 
 @group.route('/<name>/start', methods=['POST'])
 def start_attack(name):
@@ -199,7 +178,7 @@ def kick_user(name, username):
 
 @group.route('/create', methods=['POST'])
 def create_group():
-    name, target = request.form['name'], request.form['target']
+    name, target, min_power = request.form['name'], request.form['target'], int(request.form['minimum-power'])
 
     if not check_group_name(name):
         return render_template('dashboard.html', group_err = 'Only letters, digits and "-_" are accepted in the group name', groups=groups, groups_count=len(groups))
@@ -207,5 +186,5 @@ def create_group():
     if find_group(name):
         return render_template('dashboard.html', group_err = 'The group name is already used', groups=groups, groups_count=len(groups))
 
-    groups.append(Group(name, target, session.user))
+    groups.append(Group(name, target, session.user, min_power))
     return redirect(f'/group/{name}')

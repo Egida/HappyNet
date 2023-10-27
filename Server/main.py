@@ -2,7 +2,7 @@ from flask_sock import Sock
 from ws.client import WebSocketClient
 from ws.live import WebSocketAnalytics
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, send_file
 from flask import g as session
 
 from auth.token import JWTBadChecksum, JWTExpired, load_JWT
@@ -74,8 +74,12 @@ def jwt_check():
     elif request.path != '/login':
         return redirect('/login')
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_file('./static/img/pepe.ico')
+
 if __name__ == '__main__':
     sock.route('/websocket')(WebSocketClient)
     sock.route('/stalk')(WebSocketAnalytics)
-    app.run('0.0.0.0', 6969, debug=False)
+    app.run('0.0.0.0', 6969, debug=True)
 
