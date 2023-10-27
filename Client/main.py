@@ -10,7 +10,6 @@ from psutil import Process
 
 from rich.console import Console
 from rich.table import Table
-
 from configs.ip import IP
 
 console = Console()
