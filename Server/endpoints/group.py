@@ -1,7 +1,8 @@
 from flask import Blueprint, request, render_template, redirect
 from flask import g as session
 
-from group import Group, Member, find_user, find_group, groups
+from group import Group, find_user, find_group, groups
+from endpoints.login import accounts
 import string
 import json
 
@@ -55,7 +56,11 @@ def group_info(name):
     if session.user in group.banned:
         return render_template('404.html', msg='Group not found'), 404
 
-    return render_template('group.html', group=group)
+    is_admin = group.admin == session.user
+    if accounts.data[session.user].get('role') == 'admin':
+        is_admin = True
+
+    return render_template('group.html', group=group, is_admin=is_admin)
 
 @group.route('/<name>', methods=['POST'])
 def remove_member(name):

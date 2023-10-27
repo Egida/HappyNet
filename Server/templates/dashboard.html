@@ -9,7 +9,7 @@
     <body>
         <h1>Welcome Back, {{ g.user }}!</h1>
         {% if groups != [] %}
-        <p>Existing Groups:</p>
+        <h2>Existing Groups</h2>
         <table class="fullwidth">
             <tr >
                 <th>Name</th>
@@ -27,6 +27,33 @@
         <br/>
         {% else %}
         <p class="error">There are no groups</p>
+        {% endif %}
+
+        {% if registration_requests != [] and g.role == "admin" %}
+        <h2>Registration Requests</h2>
+        <table class="fullwidth">
+            <tr>
+                <th>Name</th>
+                <th>Approve</th>
+                <th>Declyne</th>
+            </tr>
+            {% for request in registration_requests %}
+            <tr>
+                <td>{{request}}</td>
+                <td>
+                    <form method="post" action="/approve/{{request}}">
+                        <button type="submit" class="success">Approve</a>
+                    </form>
+                </td>
+                <td>
+                    <form method="post" action="/declyne/{{request}}">
+                        <button type="submit" class="error">Declyne</a>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br/>
         {% endif %}
 
         <form method="post" action="/group/create" class='bordered'>
@@ -64,7 +91,10 @@
         </form>
         <br>
         <form method="post" action="/logout">
-            <button type="submit" class="error">logout</a>
+            <button type="submit" class="error">Logout</a>
+        </form>
+        <form method="post" action="/delete">
+            <button type="submit" class="error">Delete Account</a>
         </form>
     </body>
 

@@ -35,7 +35,7 @@ class WebSocketAnalytics:
                 'total': self.group.requests_total,
                 'members': members
             }
-            print(old_data, data, old_data == data)
+
             if data != old_data:
                 self.ws.send(json.dumps(data))
                 old_data = data
