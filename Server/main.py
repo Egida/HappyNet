@@ -70,7 +70,7 @@ def jwt_check():
         session.role = accounts.data[session.user].get('role', 'user')
         if not accounts.data[session.user].get('active', True):
             return render_template('401.html', msg='Please wait for your registration to being approved.')
-    
+
     elif request.path != '/login':
         return redirect('/login')
 
