@@ -10,7 +10,7 @@
     <body>
         <a href="/" class="menu">&lt;- Go Home</a>
         <h1 style="margin-bottom: 0rem;">{{ group.name }}</h1>
-        <p style="margin-top: 0rem;">Attack Status: <span {% if group.status == "RUNNING" %} class="error" {% endif %}>{{ group.status }}</span></p>
+        <p style="margin-top: 0rem;">Attack Status: <span {% if group.status == "RUNNING" %} class="success" {% endif %}>{{ group.status }}</span></p>
  
         {% if group.status == "RUNNING" and is_admin %}
             <form action="/group/{{group.name}}/stop" method="post">
