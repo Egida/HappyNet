@@ -60,7 +60,10 @@ class Group:
         for member in self.members:
             reqs += member.requests_total
             per_s += member.requests_per_second
+
+        if reqs > self.requests_total:
+            self.requests_total = reqs
         self.requests_per_second = per_s
-        self.requests_total = reqs
+
 
 #groups.append(Group('local', 'http://127.0.0.1:8000/', 'admin'))
