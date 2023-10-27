@@ -58,7 +58,7 @@ class WebSocketClient:
                     self.ws.send(json.dumps({'p': 'err', 'msg': 'not-in-group'}))
                     continue
 
-                current_group_usr.requests_total = data['total']
+                current_group.requests_total += data['plus']
                 current_group_usr.requests_per_second = data['per_second']
 
                 current_group.calc_reqs()

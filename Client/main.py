@@ -151,7 +151,7 @@ class Attack:
             console.print(f'[red][*][/red] Attack Running with {processes * threads} Threads against [orange3]{target}[/orange3]')
             console.print(f'[red][*][/red] Total Requests: {total_reqs} Req/S: {round(req_per_second, 2)}')
 
-            ws.send(json.dumps({'p': 'analytics', 'per_second': req_per_second, 'total': total_reqs}))
+            ws.send(json.dumps({'p': 'analytics', 'per_second': req_per_second, 'plus': req_time_count}))
             old_total_reqs = total_reqs
             last_time = time.time()
             time.sleep(1)

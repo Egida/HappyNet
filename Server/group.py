@@ -55,15 +55,7 @@ class Group:
         self.calc_reqs()
 
     def calc_reqs(self):
-        reqs = 0
-        per_s = 0
-        for member in self.members:
-            reqs += member.requests_total
-            per_s += member.requests_per_second
-
-        if reqs > self.requests_total:
-            self.requests_total = reqs
-        self.requests_per_second = per_s
+        self.requests_per_second = sum([m.requests_per_second for m in self.members])
 
 
 #groups.append(Group('local', 'http://127.0.0.1:8000/', 'admin'))
