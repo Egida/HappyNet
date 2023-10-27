@@ -7,10 +7,11 @@ import subprocess
 import time
 from psutil import Process
 
+
 from rich.console import Console
 from rich.table import Table
 
-from config import IP
+from configs.ip import IP
 
 console = Console()
 group_name = ['']
