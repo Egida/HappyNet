@@ -24,7 +24,7 @@ pub fn ddos(threads_num int, target string) {
     }
 
 	for {
-		os.write_file('${pid}.txt', req_count.str()) or {}
+		os.write_file('pids/${pid}.txt', req_count.str()) or {}
 		sleep(1 * time.second)
 	}
 }

