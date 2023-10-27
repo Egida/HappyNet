@@ -10,16 +10,20 @@
         <a href="/" class="menu">&lt;- Go Home</a>
         <h1 style="margin-bottom: 0rem;">{{ group.name }}</h1>
         <p style="margin-top: 0rem;">Attack Status: <span {% if group.status == "RUNNING" %} class="error" {% endif %}>{{ group.status }}</span></p>
-        {% if group.status == "RUNNING" and group.admin == g.user %}
+ 
+        {% if group.status == "RUNNING" and is_admin %}
             <form action="/group/{{group.name}}/stop" method="post">
                 <button type="submit" class="error">STOP ATTACK</button>
             </form>
-            <p class="error" style="margin-top: 0; margin-bottom: 0;"><b id="req_per_s">Req/s: {{ group.requests_per_second }}</b></p>
-            <p class="error"style="margin-top: 0"><b id="tot_reqs">Total: {{ group.requests_total }}</b></p>
-        {% elif group.status == "idle" and group.admin == g.user %}
+        {% elif group.status == "idle" and is_admin %}
             <form action="/group/{{group.name}}/start" method="post">
                 <button type="submit" class="success">START ATTACK</button>
             </form>
+        {% endif %}
+
+        {% if group.status == "RUNNING" %}
+            <p class="error" style="margin-top: 0; margin-bottom: 0;"><b id="req_per_s">Req/s: {{ group.requests_per_second }}</b></p>
+            <p class="error"style="margin-top: 0"><b id="tot_reqs">Total: {{ group.requests_total }}</b></p>
         {% endif %}
 
         <p>
@@ -36,7 +40,7 @@
                     <th>Requests</th>
                     {% endif %}
                     <th>Threads</th>
-                    {% if group.admin == g.user %}
+                    {% if is_admin %}
                     <th>Ban</th>
                     <th>Kick</th>
                     {% endif %}
@@ -48,7 +52,7 @@
                     <td id="reqs-{{member.name}}">{{member.requests_total}}</td>
                     {% endif %}
                     <td>{{ member.threads }}</td>
-                    {% if group.admin == g.user %}
+                    {% if is_admin %}
                     <td>
                         <form method="post" action="/group/{{group.name}}/{{member.name}}/ban">
                             <button type="submit">Ban</button>
@@ -67,7 +71,7 @@
             <p class="error">Uhm, nobody is here.. :'(</p>
         {% endif %}
 
-        {% if group.admin == g.user and group.banned != [] %}
+        {% if is_admin and group.banned != [] %}
             <h2 class="error">Banned Attackers</h2>
             <table>
                 <tr>
@@ -87,7 +91,7 @@
             </table>
         {% endif %}
 
-        {% if group.admin == g.user %}
+        {% if is_admin %}
             <br>
             <form action="/group/{{group.name}}/delete" method="post">
                 <button type="submit" class="error">Delete Group</button>
