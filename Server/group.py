@@ -62,4 +62,4 @@ class Group:
         self.requests_per_second = per_s
         self.requests_total = reqs
 
-groups.append(Group('local', 'http://127.0.0.1:8000/', 'admin'))
+#groups.append(Group('local', 'http://127.0.0.1:8000/', 'admin'))
