@@ -6,12 +6,16 @@ import requests
 import threading
 import subprocess
 import time
+import random
 from psutil import Process
 
 
 from rich.console import Console
 from rich.table import Table
 from configs.ip import IP
+from random_data import first_names
+
+username = random.choice(first_names)
 
 console = Console()
 group_name = ['']
@@ -22,9 +26,13 @@ if not cores:
     console.log('[red]Failed to retrive CPU count, default: 2')
     cores = 2
 
+
+
 suggested_threads = cores * 10
 suggested_processes = cores // 4 + 1
 suggested_power = suggested_processes * suggested_threads
+
+IP = console.input(f'[cyan][?][/cyan] HappyNet Server ({IP}) >')
 
 def print_group(group_name):
     global groups
@@ -186,7 +194,7 @@ def on_close(ws, close_status_code, close_msg):
     attack.stop_attack()
 
 def on_open(ws):
-    ws.send(json.dumps({'p': 'identify', 'username': 'traba'}))
+    ws.send(json.dumps({'p': 'identify', 'username': username}))
     ws.send(json.dumps({'p': 'join-group', 'name': group_name[0], 'cores': cores, 'threads': threads * processes}))
     if groups[group_name[0]]['status'] == 'RUNNING':
         attack.start_attack()

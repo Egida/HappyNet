@@ -29,7 +29,8 @@ class WebSocketClient:
                 username = data['username']
                 if username in WebSocketClient.connections:
                     username += f'.{secrets.token_hex(4)}'
-                    self.ws.send(json.dumps({'p': 'identify', 'usr': username}))
+                
+                self.ws.send(json.dumps({'p': 'identify', 'usr': username}))
 
                 WebSocketClient.connections[username] = self
 
